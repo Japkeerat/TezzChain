@@ -1,2 +1,5 @@
 posthog==3.6.5
 psutil==6.0.0
+ollama==0.4.4
+tqdm==4.67.1
+PyYAML==6.0.2
