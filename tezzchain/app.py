@@ -1,4 +1,5 @@
-from telemetry.events import SemiAnonymizedTelemetry
+from tezzchain.telemetry.events import SemiAnonymizedTelemetry
+
 
 class TezzChain:
     pass
