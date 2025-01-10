@@ -1,3 +1,7 @@
+"""
+Abstract Base Class for Language Models defining the functions that each LLM must implement
+"""
+
 from typing import Optional
 from abc import ABC, abstractmethod
 

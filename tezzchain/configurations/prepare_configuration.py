@@ -26,7 +26,9 @@ class TezzchainConfiguration:
             configuration.get("CLIENT-TELEMETRY", dict()),
             global_config["allow_client_telemetry"],
         )
-        llm_config = self.__prepare_llm_configuration(configuration.get("LLM", dict()), global_config["llm_provider"])
+        llm_config = self.__prepare_llm_configuration(
+            configuration.get("LLM", dict()), global_config["llm_provider"]
+        )
         self.config = self.__merge_configurations(
             global_config, client_telemetry_config, llm_config
         )
@@ -49,7 +51,10 @@ class TezzchainConfiguration:
         need to configure it in the config file.
         """
         if allow_client_telemetry:
-            if "api" not in client_telemetry_config or "host" not in client_telemetry_config:
+            if (
+                "api" not in client_telemetry_config
+                or "host" not in client_telemetry_config
+            ):
                 raise ValueError(
                     """Client telemetry is enabled but either 'api' or 'host' is not provided 
                     in the configuration."""
@@ -57,8 +62,10 @@ class TezzchainConfiguration:
             return client_telemetry_config
         else:
             return {"api": None, "host": None}
-        
-    def __prepare_llm_configuration(self, configuration: dict, llm_provider: str) -> dict:
+
+    def __prepare_llm_configuration(
+        self, configuration: dict, llm_provider: str
+    ) -> dict:
         """
         Configurations that are specific to the LLM provider that the user has chosen.
         """
@@ -66,9 +73,7 @@ class TezzchainConfiguration:
             field.name
             for field in llm_configurators[llm_provider].__dataclass_fields__.values()
         }
-        config_params = {
-            k: v for k, v in configuration.items() if k in valid_keys
-        }
+        config_params = {k: v for k, v in configuration.items() if k in valid_keys}
         return asdict(llm_configurators[llm_provider](**config_params))
 
     def __merge_configurations(
