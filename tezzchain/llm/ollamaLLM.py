@@ -18,21 +18,22 @@ logger = logging.getLogger("tezzchain")
 
 
 __tezzchain_ollama_llm_version__ = "0.0.1"
-__ollama_server_supported_version__ = "0.5.4" 
+__ollama_server_supported_version__ = "0.5.4"
 
 
 class OllamaLLM(BaseLLM):
     """
     Singleton class that wraps the Ollama API to provide language model functionalities.
-    
+
     Inherits from BaseLLM, the base class for all LLMs in TezzChain.
     """
+
     _instance = None
 
     def __new__(cls, *args, **kwargs):
         """
         Ensures that only one instance of OllamaLLM is created (Singleton pattern).
-        
+
         :param args: Positional arguments.
         :param kwargs: Keyword arguments.
         :return: The singleton instance of OllamaLLM.
@@ -50,7 +51,7 @@ class OllamaLLM(BaseLLM):
     ):
         """
         Initializes the OllamaLLM with the specified parameters.
-        
+
         :param model: The name of the model to use.
         :param host: The host URL of the Ollama API.
         :param streaming: Whether to enable streaming of responses.
@@ -71,10 +72,10 @@ class OllamaLLM(BaseLLM):
         host: Optional[str] = None,
         streaming: Optional[bool] = True,
         **kwargs
-    ) -> 'OllamaLLM':
+    ) -> "OllamaLLM":
         """
         Creates and returns an instance of OllamaLLM.
-        
+
         :param model: The name of the model to use.
         :param host: The host URL of the Ollama API.
         :param streaming: Whether to enable streaming of responses.
@@ -93,7 +94,7 @@ class OllamaLLM(BaseLLM):
     ) -> str:
         """
         Creates a custom model using the provided modelfile content.
-        
+
         :param model: The name of the model to use.
         :param modelfile: The path to the modelfile or the content of the modelfile.
         :param stream: Whether to enable streaming of responses.
@@ -110,7 +111,7 @@ class OllamaLLM(BaseLLM):
     def __get_options(self, num_predict: int) -> Options:
         """
         Constructs and returns the Options object for the API request.
-        
+
         :param num_predict: The number of predictions to generate.
         :return: An Options object.
         """
@@ -129,7 +130,7 @@ class OllamaLLM(BaseLLM):
     def generate(self, query: str, num_predict: Optional[int] = -10) -> Generator:
         """
         Generates a response to the given query.
-        
+
         :param query: The input query string.
         :param num_predict: The number of predictions to generate.
         :return: A generator that yields response chunks.
@@ -148,7 +149,7 @@ class OllamaLLM(BaseLLM):
     ) -> Generator:
         """
         Handles a chat interaction with the model.
-        
+
         :param messages: A list of messages in the format [{"role": "user", "content": "message"}, ...].
         :param num_predict: The number of predictions to generate.
         :return: A generator that yields response chunks.
@@ -171,7 +172,7 @@ class OllamaLLM(BaseLLM):
     def get_model(self) -> str:
         """
         Returns the name of the current model.
-        
+
         :return: The name of the current model.
         """
         return self.model
@@ -179,7 +180,7 @@ class OllamaLLM(BaseLLM):
     def get_client(self) -> Client:
         """
         Returns the Ollama API client instance.
-        
+
         :return: The Ollama API client instance.
         """
         return self.client
