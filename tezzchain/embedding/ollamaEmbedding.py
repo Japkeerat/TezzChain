@@ -42,12 +42,7 @@ class OllamaEmbedding(BaseEmbedding):
             self.initialized = True
 
     def __get_options(self):
-        options = Options(
-            num_ctx=self.kwargs.get("num_ctx", 2048),
-            low_vram=self.kwargs.get("low_vram", False),
-            num_predict=self.kwargs.get("num_predict", -1),
-            **self.kwargs["hyperparameters"]
-        )
+        options = Options(**self.kwargs)
         return options
 
     def embed(self, text: str) -> list[float]:

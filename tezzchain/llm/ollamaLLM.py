@@ -115,16 +115,7 @@ class OllamaLLM(BaseLLM):
         :param num_predict: The number of predictions to generate.
         :return: An Options object.
         """
-        options = Options(
-            num_ctx=self.kwargs.get("num_ctx", 2048),
-            low_vram=self.kwargs.get("low_vram", False),
-            num_predict=(
-                self.kwargs.get("num_predict", -1)
-                if num_predict == -10
-                else num_predict
-            ),
-            **self.kwargs["hyperparameters"]
-        )
+        options = Options(**self.kwargs)
         return options
 
     def generate(self, query: str, num_predict: Optional[int] = -10) -> Generator:
