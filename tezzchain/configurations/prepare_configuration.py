@@ -13,6 +13,7 @@ from dataclasses import asdict
 from tezzchain.utils import read_file_intelligently
 from tezzchain.configurations.llm_providers import llm_configurators
 from tezzchain.configurations.global_configuration import GlobalConfiguration
+from tezzchain.configurations.embedding_providers import embedding_configurators
 
 
 class TezzchainConfiguration:
@@ -29,8 +30,11 @@ class TezzchainConfiguration:
         llm_config = self.__prepare_llm_configuration(
             configuration.get("LLM", dict()), global_config["llm_provider"]
         )
+        embedding_config = self.__prepare_embedding_configuration(
+            configuration.get("EMBEDDING", dict()), global_config["embedding_provider"]
+        )
         self.config = self.__merge_configurations(
-            global_config, client_telemetry_config, llm_config
+            global_config, client_telemetry_config, llm_config, embedding_config
         )
 
     def __prepare_global_configuration(self, configuration: dict) -> dict:
@@ -76,8 +80,27 @@ class TezzchainConfiguration:
         config_params = {k: v for k, v in configuration.items() if k in valid_keys}
         return asdict(llm_configurators[llm_provider](**config_params))
 
+    def __prepare_embedding_configuration(
+        self, configuration: dict, embedding_provider: str
+    ) -> dict:
+        """
+        Configurations that are specific to the Embedding provider that has been chosen
+        """
+        valid_keys = {
+            field.name
+            for field in embedding_configurators[
+                embedding_provider
+            ].__dataclass_fields__.values()
+        }
+        config_params = {k: v for k, v in configuration.items() if k in valid_keys}
+        return asdict(embedding_configurators[embedding_provider](**config_params))
+
     def __merge_configurations(
-        self, global_config: dict, client_telemetry_config: dict, llm_config: dict
+        self,
+        global_config: dict,
+        client_telemetry_config: dict,
+        llm_config: dict,
+        embedding_config: dict,
     ) -> dict:
         """
         Prepares the final configuration dictionary to maintain the configuration of the application.
@@ -86,5 +109,6 @@ class TezzchainConfiguration:
             "APP": global_config,
             "CLIENT-TELEMETRY": client_telemetry_config,
             "LLM": llm_config,
+            "EMBEDDING": embedding_config,
         }
         return config
