@@ -27,11 +27,6 @@ class TezzChain:
         with open("temp.json", "w") as f:
             json.dump(self.config, f, indent=4)
         self.logger = self.__configure_logger()
-        self.telemetry_queue = multiprocessing.Queue()
-        self.telemetry_process = multiprocessing.Process(
-            target=self.process_telemetry, daemon=True
-        )
-        self.telemetry_process.start()
         self.model = self.__set_model()
         self.vectordb = self.__set_vectordb()
         self.embedder = self.__set_embedding_module()
@@ -77,62 +72,28 @@ class TezzChain:
         else:
             raise ValueError("Invalid APP-STATUS")
 
-    def __initiate_telemetry(self) -> SemiAnonymizedTelemetry:
-        telemetry = SemiAnonymizedTelemetry(
-            allow=self.config["APP"]["allow_tezzchain_telemetry"],
-            api_key=self.config["CLIENT-TELEMETRY"]["api"],
-            host=self.config["CLIENT-TELEMETRY"]["host"],
-        )
-        return telemetry
-
-    def process_telemetry(self):
-        telemetry = self.__initiate_telemetry()
-        while True:
-            event_data = self.telemetry_queue.get()
-            if event_data is None:
-                break
-            telemetry.capture(
-                event_name=event_data.get("event"),
-                properties=event_data.get("properties"),
-            )
-            time.sleep(1)
-
-    def __log_telemetry_event(
-        self, event_name: str, properties: Optional[dict] = None
-    ) -> None:
-        telemetry_data = {
-            "event": event_name,
-            "properties": properties if properties else dict(),
-        }
-        self.telemetry_queue.put(telemetry_data)
-
     def __set_model(self):
         llm_config = self.config["LLM"]
         provider = self.config["APP"]["llm_provider"].lower()
-        self.__log_telemetry_event("llm", properties={"provider": provider})
         return llm_providers[provider](**llm_config)
 
     def __set_vectordb(self):
         # First set the embedding function as well
         vectordb_config = self.config["VECTORDB"]
         provider = self.config["APP"]["vectordb_provider"].lower()
-        self.__log_telemetry_event("vectordb", properties={"provider": provider})
         return vectordb[provider](**vectordb_config)
 
     def __set_embedding_module(self):
         embedder_config = self.config["EMBEDDING"]
         provider = self.config["APP"]["embedding_provider"].lower()
-        self.__log_telemetry_event("embedding", properties={"provider": provider})
         return embedding_providers[provider](**embedder_config)
 
     def __set_chunking_algorithm(self):
         chunking_config = self.config["CHUNK"]
         algorithm = self.config["APP"]["chunking_algorithm"].lower()
-        self.__log_telemetry_event("chunking", properties={"algorithm": algorithm})
         return chunker[algorithm](**chunking_config)
 
     def generate(self, query: str, num_predict: Optional[int] = -1) -> Generator:
-        self.__log_telemetry_event("generate")
         embedded_query = self.embedder.embed(query)
         context = self.vectordb.query_db(embedded_query["embeddings"])
         if num_predict >= 0:
@@ -158,7 +119,6 @@ class TezzChain:
         session: str,
         num_predict: Optional[int] = -1,
     ) -> Generator:
-        self.__log_telemetry_event("chat")
         context = self.vectordb.query_db(self.embedder.embed(query))
         history = ChatHistory(session_id=session)
         history.add_message(context, "context")
@@ -176,10 +136,6 @@ class TezzChain:
             chunk["session"] = session
             yield chunk
         history.add_message(response, "assistant")
-
-    def close(self):
-        self.telemetry_queue.put(None)
-        self.telemetry_process.join()
 
     def add(
         self, file_path: Path | str, session: str, metadata: Optional[dict] = None
