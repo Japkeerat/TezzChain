@@ -2,9 +2,10 @@
 **/__pycache__/
 
 # Testing files
-chroma.log
-config.yaml
-temp.json
-test.py
-test.txt
+tests/
 chroma_data/
+
+# Build
+build/
+dist/
+TezzChain.egg-info

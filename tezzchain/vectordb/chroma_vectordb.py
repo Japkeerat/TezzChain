@@ -69,6 +69,5 @@ class ChromaDB(BaseVectorDB):
             where_clause = {"session": session_id}
             pass
         response = self.collection.query(query_embedding, n_results=self.n_results)
-        print(response["documents"])
         context = "; ".join(documents[0] for documents in response["documents"])
         return context
