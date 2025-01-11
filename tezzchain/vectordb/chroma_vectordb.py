@@ -17,6 +17,7 @@ class ChromaDB(BaseVectorDB):
         db_path: Optional[Path] = None,
         collection_name: Optional[str] = "default",
         allow_reset: Optional[bool] = False,
+        n_results: Optional[int] = 5,
     ):
         """
         Use this class to interact with Chroma Vector Database for your RAG application.
@@ -35,6 +36,7 @@ class ChromaDB(BaseVectorDB):
         self.client = self.__start_client()
         self.allow_reset = allow_reset
         self.collection = self.__create_collection(collection_name)
+        self.n_results = n_results
 
     def __start_client(self) -> ClientAPI:
         settings = Settings(
@@ -62,8 +64,11 @@ class ChromaDB(BaseVectorDB):
             embeddings=[embedding], documents=[content], metadatas=[metadata], ids=[id]
         )
 
-    def query_db(self, query_embedding: list):
-        response = self.collection.query(query_embedding, n_results=5)
+    def query_db(self, query_embedding: list, session_id: Optional[str] = None) -> str:
+        if session_id:
+            where_clause = {"session": session_id}
+            pass
+        response = self.collection.query(query_embedding, n_results=self.n_results)
         print(response["documents"])
         context = "; ".join(documents[0] for documents in response["documents"])
         return context
