@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional
 from dataclasses import asdict
 
-from tezzchain.utils import read_file_intelligently
+from tezzchain.utilities.read_file import read_file_intelligently
 from tezzchain.configurations.chunkers import chunk_config
 from tezzchain.configurations.llm_providers import llm_configurators
 from tezzchain.configurations.vectordb_providers import vectordb_config
