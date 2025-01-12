@@ -14,10 +14,13 @@ class ChromaDB(BaseVectorDB):
     def __init__(
         self,
         host: Optional[str] = "http://localhost:8000",
+        port: Optional[int] = 8000,
         db_path: Optional[Path] = None,
+        tenant_id: Optional[str] = "default",
         collection_name: Optional[str] = "default",
         allow_reset: Optional[bool] = False,
         n_results: Optional[int] = 5,
+        max_threads: Optional[int] = 40,
     ):
         """
         Use this class to interact with Chroma Vector Database for your RAG application.
@@ -29,12 +32,15 @@ class ChromaDB(BaseVectorDB):
         will be created in the home directory.
         """
         self.host = host
+        self.port = port
         if db_path:
             self.db_path = db_path
         else:
             self.db_path = TEZZCHAIN_DIR / ".chromadb"
-        self.client = self.__start_client()
+        self.max_threads = max_threads
         self.allow_reset = allow_reset
+        self.tenant_id = tenant_id
+        self.client = self.__start_client()
         self.collection = self.__create_collection(collection_name)
         self.n_results = n_results
 
@@ -42,11 +48,18 @@ class ChromaDB(BaseVectorDB):
         settings = Settings(
             anonymized_telemetry=False,
             chroma_api_impl="chromadb.api.fastapi.FastAPI",
-            chroma_server_host="http://localhost:8000/",
-            chroma_server_http_port=8000,
-            # allow_reset=self.allow_reset,
+            chroma_server_host=self.host,
+            chroma_server_http_port=self.port,
+            tenant_id=self.tenant_id if self.tenant_id else "default",
+            chroma_server_thread_pool_size=self.max_threads,
+            allow_reset=self.allow_reset,
         )
-        client = PersistentClient(path=self.db_path, settings=settings)
+        if self.tenant_id:
+            client = PersistentClient(
+                path=self.db_path, settings=settings, tenant=self.tenant_id
+            )
+        else:
+            client = PersistentClient(path=self.db_path, settings=settings)
         return client
 
     def __create_collection(self, collection: str) -> Collection:
@@ -67,7 +80,10 @@ class ChromaDB(BaseVectorDB):
     def query_db(self, query_embedding: list, session_id: Optional[str] = None) -> str:
         if session_id:
             where_clause = {"session": session_id}
-            pass
-        response = self.collection.query(query_embedding, n_results=self.n_results)
+        response = self.collection.query(
+            query_embedding,
+            n_results=self.n_results,
+            where=where_clause if session_id else None,
+        )
         context = "; ".join(documents[0] for documents in response["documents"])
         return context

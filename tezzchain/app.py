@@ -24,8 +24,6 @@ from tezzchain.configurations.prepare_configuration import TezzchainConfiguratio
 class TezzChain:
     def __init__(self, config_file: Optional[Path] = None):
         self.config = TezzchainConfiguration(config_file).get_config()
-        with open("temp.json", "w") as f:
-            json.dump(self.config, f, indent=4)
         self.logger = self.__configure_logger()
         self.model = self.__set_model()
         self.vectordb = self.__set_vectordb()
@@ -93,9 +91,9 @@ class TezzChain:
         algorithm = self.config["APP"]["chunking_algorithm"].lower()
         return chunker[algorithm](**chunking_config)
 
-    def generate(self, query: str, num_predict: Optional[int] = -1) -> Generator:
+    def generate(self, query: str, session: Optional[str] = None, num_predict: Optional[int] = -1) -> Generator:
         embedded_query = self.embedder.embed(query)
-        context = self.vectordb.query_db(embedded_query["embeddings"])
+        context = self.vectordb.query_db(embedded_query["embeddings"], session_id=session)
         if num_predict >= 0:
             num_predict = num_predict
         else:
@@ -119,7 +117,7 @@ class TezzChain:
         session: str,
         num_predict: Optional[int] = -1,
     ) -> Generator:
-        context = self.vectordb.query_db(self.embedder.embed(query))
+        context = self.vectordb.query_db(self.embedder.embed(query), session_id=session)
         history = ChatHistory(session_id=session)
         history.add_message(context, "context")
         history.add_message(query, "user")

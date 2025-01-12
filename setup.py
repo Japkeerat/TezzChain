@@ -9,7 +9,7 @@ def parse_requirements(filename):
 
 setup(
     name="TezzChain",
-    version="0.1.0",
+    version="0.1.1",
     author="Japkeerat Singh",
     author_email="japkeerat21@gmail.com",
     description="Low Code RAG building tool",
